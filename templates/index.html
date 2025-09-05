@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Automatic Meeting Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <h1 class="mb-4 text-center"><i class="fas fa-video me-2"></i> Automatic Meeting Agent</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Schedule Meeting Form -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="fas fa-calendar-plus me-2"></i> Schedule a Meeting</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('schedule_meeting') }}">
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-heading icon-3d"></i> Meeting Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="Enter meeting title">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-link icon-3d"></i> Meeting Link</label>
+                    <input type="url" name="link" class="form-control" placeholder="Paste meeting link" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-user icon-3d"></i> Your Name</label>
+                    <input type="text" name="participant_name" class="form-control" value="Meeting Participant">
+                </div>
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label"><i class="fas fa-calendar-alt icon-3d"></i> Date</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fas fa-clock icon-3d"></i> Time</label>
+                        <input type="time" name="time" class="form-control" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-calendar-plus"></i> Schedule Meeting</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Start Meeting Immediately -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="fas fa-video me-2"></i> Start Now</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('start_now') }}">
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-link icon-3d"></i> Meeting Link</label>
+                    <input type="url" name="link" class="form-control" placeholder="Paste meeting link" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-user icon-3d"></i> Your Name</label>
+                    <input type="text" name="participant_name" class="form-control" value="Meeting Participant">
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-video me-2"></i> Start Recording</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scheduled Meetings -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="fas fa-calendar-alt me-2"></i> Scheduled Meetings</div>
+        <div class="card-body">
+            {% if schedules %}
+                <ul class="list-group">
+                    {% for job_id, schedule in schedules.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ schedule.title }}</strong><br>
+                                <i class="fas fa-link icon-3d"></i> Link: <a href="{{ schedule.link }}" target="_blank">{{ schedule.link }}</a><br>
+                                <i class="fas fa-calendar-alt icon-3d"></i> Date: {{ schedule.datetime }}<br>
+                                <i class="fas fa-user icon-3d"></i> Name: {{ schedule.participant_name }}
+                            </div>
+                            <form method="POST" action="{{ url_for('delete_schedule', job_id=job_id) }}">
+                                <button class="btn btn-danger btn-sm"> <i class="fas fa-times"></i> Cancel</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted"><i class="fas fa-calendar-alt"></i> No meetings scheduled.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recordings -->
+    <!-- <div class="card mb-4 shadow-sm">
+        <div class="card-header">Recordings</div>
+        <div class="card-body">
+            {% if videos %}
+                <ul class="list-group">
+                    {% for video in videos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ video.name }}</strong><br>
+                                Date: {{ video.date }}<br>
+                                Size: {{ (video.size / (1024*1024))|round(2) }} MB
+                            </div>
+                            <div>
+                                <a href="{{ video.url }}" class="btn btn-sm btn-primary">Download</a>
+                                <form method="POST" action="{{ url_for('delete_recording', filename=video.name) }}" style="display:inline;">
+                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No recordings available.</p>
+            {% endif %}
+        </div>
+    </div> -->
+
+    <div class="card mb-4 shadow-sm">
+    <div class="card-header"><i class="fas fa-video me-2"></i> Recordings</div>
+    <div class="card-body">
+        {% if audios %}
+            <ul class="list-group">
+                {% for audio in audios %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ audio.name }}</strong><br>
+                            <i class="fas fa-calendar-alt icon-3d"></i> Date: {{ audio.date }}<br>
+                            <i class="fas fa-file-audio icon-3d"></i> Size: {{ (audio.size / (1024*1024))|round(2) }} MB <br>
+                            <!-- 🎵 Audio Player -->
+                            <audio controls preload="none" style="margin-top:8px; width:550px;">
+                                <source src="{{ audio.url }}" type="audio/mpeg">
+                                <i class="fas fa-volume-up"></i> Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                        <div>
+                            <a href="{{ audio.url }}" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> Download</a>
+                            <form method="POST" action="{{ url_for('delete_recording', filename=audio.name) }}" style="display:inline;">
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-times"></i> Delete</button>
+                            </form>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted"><i class="fas fa-video"></i> No recordings available.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+    <!-- Summaries -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="fas fa-file-alt me-2"></i> Summaries</div>
+        <div class="card-body">
+            {% if summaries %}
+                <ul class="list-group">
+                    {% for summary in summaries %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ summary.name }}</strong><br>
+                                <i class="fas fa-calendar-alt icon-3d"></i> Date: {{ summary.date }}<br>
+                                <i class="fas fa-file-alt icon-3d"></i> Size: {{ (summary.size / 1024)|round(2) }} KB
+                            </div>
+                            <div>
+                                <a href="{{ summary.url }}" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> Download</a>
+                                <form method="POST" action="{{ url_for('delete_summary', filename=summary.name) }}" style="display:inline;">
+                                    <button class="btn btn-sm btn-danger"><i class="fas fa-times"></i> Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted"><i class="fas fa-file-alt"></i> No summaries available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
