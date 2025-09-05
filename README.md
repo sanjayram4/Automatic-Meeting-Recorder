@@ -1,3 +1,5 @@
+NOTE : Download -> (ffmpeg-8.0-essentials_build) & Extract it the same file. 
+
 # Automatic Meeting Agent 🎥🤖
 
 An AI-powered Flask web app that can **automatically join online meetings (Google Meet, Zoom, MS Teams, etc.)**, record audio, transcribe it into text, and generate **meeting summaries** using **Whisper + Gemini AI**.  
